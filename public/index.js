@@ -23,7 +23,6 @@ const sendMessage = () => {
     return false;
 };
 
-
 const showMessage = (message) => {
     const { author, date, text } = message;
     return `
@@ -115,53 +114,3 @@ const addProduct = (products) => {
 socket.on('products', (allProducts) => {
     addProduct(allProducts);
 });
-
-//Login
-/* const showUser = (userName) => { */
-/*     console.log("está en showUser") */
-/*     document.getElementById("userLog").innerHTML = ` */
-/*         <h2 style="color:green">Bienvenido  */
-/*          */
-/*         </h2> */
-/*     `; */
-/* }; */
-/*  */
-/* socket.on('user', (userName) => {  */
-/*     if(user) { */
-/*         document.getElementById("userLog").innerHTML = ` */
-/*         <div class="col-sm-10"> */
-/*         <h2 style="color:green" id="l">Bienvenido ${userName}</h2> */
-/*       </div> */
-/*       <div class="col-auto"> */
-/*         <button type="submit" class="btn btn-warning" id="logout">Desloguear</button> */
-/*       </div> */
-/*         `; */
-/*         document.getElementById('logout').addEventListener('click',() => { */
-/*             window.location.assign('logout'); */
-/*         }) */
-/*     } else { */
-/*         window.location.assign('logout'); */
-/*     } */
-/* }); */
-
-//Logout
-
-/* const logout = (userName) => { */
-/*     console.log("en logout", "userName", userName) */
-/*     document.getElementById("logout").innerHTML = ` */
-/*         <h2 style="color:blue">Hasta luego ${userName}</h2 >*/
-/*     ` */
-    /* setTimeout(() => { */
-    /*     console.log("en settimeout") */
-    /*    socket.emit() */
-    /* }, 2000); */
-/* } */
-
-/* const logout = () => { */
-/*     socket.emit("logout", ) */
-/* } */
-
-const logout = () => {
-    console.log("estoy en logout fx")
-    /* return false; */
-}

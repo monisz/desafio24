@@ -4,6 +4,7 @@ const { Server: HttpServer } = require('http');
 const { Server: SocketServer } = require('socket.io');
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
+const MongoStore = require('connect-mongo');
 
 const apiRoutes = require('./src/routes')
 const tableProducts = require('./src/containers/productContainer_mysql');
@@ -13,7 +14,17 @@ const app = express();
 const httpServer = new HttpServer(app);
 const ioServer = new SocketServer(httpServer);
 
+app.use(cookieParser());
+
 app.use(session({
+    store: MongoStore.create({
+        mongoUrl: "mongodb+srv://moniSz:claveMongoAtlas@cluster0.dsfgu.mongodb.net/?retryWrites=true&w=majority",
+        mongoOptions: {
+            useNewUrlParser: true,
+            useUnifiedTopology: true
+        }
+       /*  ttl: 600 */
+    }),
     secret: 'desafio24',
     resave: true,
     rolling: true,
@@ -23,7 +34,6 @@ app.use(session({
     saveUninitialized: false
 }));
 
-app.use(cookieParser());
 
 app.use(express.static('public'));
 app.use(express.json());
@@ -40,55 +50,38 @@ app.engine(
 app.set('views', './public/views');
 app.set('view engine', 'hbs');
 
-app.use('/', apiRoutes);
 
 app.post('/login', (req, res) => {
     const { userName } = req.body;
     req.session.userName = userName;
-    console.log("req.session.userName en /login", req.session.userName)
-    console.log("username", userName)
-
     res.render('main-products',  {userName});
-})
+});
+
+//Chequea si ya está logueado
+app.use('/', (req, res, next) => {
+    if (!req.session.userName) {
+        res.render('login');
+    } else next();
+});
+
+//Lo pasé acá para que el chequeo de logueado afecte también a estas rutas
+app.use('/', apiRoutes);
 
 
-/* app.post('/logout', (req, res, next) => { */
-/*     const userName = req.session.userName */
-/*     req.session.destroy((err) => { */
-/*         console.log(err); */
-/*         res.render('logout', {userName}) */
-/*     }) */
-/*     next(); */
-/* }, (req, res) => { */
-/*     setTimeout(() => { */
-/*         console.log("en settimeout") */
-/*         res.render('login') */
-/*     }, 2000); */
-/* }) */
-
-app.post('/logout', (req, res) => {
-    const userName = req.session.userName
-    console.log("estoy en post logout")
+app.post('/logout', async (req, res) => {
+    const userName = req.session.userName;
     req.session.destroy((err) => {
         console.log(err);
         res.render('logout', {userName})
-    })
-})
-
+    });
+});
 
 //Ruta para test con Faker
 app.get('/api/productos-test', async (req, res) => {
     const mocks = await tableProducts.generateMock();
     console.log(mocks)
     res.render('main-faker', {mocks})
-})
-
-app.use('/', (req, res) => {
-    console.log(req.session.userName)
-    console.log(!req.session.userName)
-    if (!req.session?.userName) res.render('login');
 });
-
 
 // Para cualquier ruta no implementada
 app.use((req, res) => {
@@ -103,7 +96,6 @@ httpServer.listen(8080, () => {
 
 ioServer.on('connection', (socket) => {
     console.log('Nuevo cliente conectado');
-    /* socket.emit('user', userName) */
     const getTables = (async () => {
         socket.emit('messages', await colMessages.getAll());  
         socket.emit('products', await tableProducts.getAll());
@@ -122,12 +114,4 @@ ioServer.on('connection', (socket) => {
             ioServer.sockets.emit("products", allProducts);
         }) (product);
     });
-    /* socket.on('logout', (userName) => { */
-    /*     console.log("en socket", userName) */
-    /*     const getTables = (async () => { */
-    /*          */
-    /*          */
-    /*         socket.emit('logout', userName) */
-    /*     }) (); */
-    /* }); */
 });
