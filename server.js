@@ -5,6 +5,7 @@ const { Server: SocketServer } = require('socket.io');
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const MongoStore = require('connect-mongo');
+const { mongoAtlasConnection } = require('./mongoAtlasConnection');
 
 const apiRoutes = require('./src/routes')
 const tableProducts = require('./src/containers/productContainer_mysql');
@@ -18,12 +19,14 @@ app.use(cookieParser());
 
 app.use(session({
     store: MongoStore.create({
-        mongoUrl: "mongodb+srv://moniSz:claveMongoAtlas@cluster0.dsfgu.mongodb.net/?retryWrites=true&w=majority",
+        mongoUrl: mongoAtlasConnection,
+        dbName: 'ecommerce',
+        //Según la docu, si la cookie tiene seteado el tiempo, usa ese
+        ttl: 10 * 60,
         mongoOptions: {
             useNewUrlParser: true,
             useUnifiedTopology: true
         }
-       /*  ttl: 600 */
     }),
     secret: 'desafio24',
     resave: true,
